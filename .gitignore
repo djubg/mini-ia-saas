@@ -1,0 +1,31 @@
+# --- Données (lourdes, reproductibles) : on ne committe QUE le corpus d'exemple ---
+data/*
+!data/sample_saas.txt
+
+# Checkpoints du modèle (lourds, des centaines de Mo)
+checkpoints/
+*.pt
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Divers OS / éditeurs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Dossiers de travail temporaires
+_tmptest/
+_bigtest/
+_ftest*/
+_raw_web/

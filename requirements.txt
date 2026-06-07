@@ -1,0 +1,14 @@
+# Dépendances du projet Mini IA SaaS (mini-GPT from scratch)
+# Installation : python -m pip install -r requirements.txt
+
+torch>=2.1        # le coeur : tenseurs + autograd (CPU par défaut)
+numpy>=1.24       # stockage des tokens en mémoire (memmap)
+regex>=2023.0     # découpage type GPT-2 pour le tokenizer BPE
+tqdm>=4.66        # barres de progression
+
+# --- GPU AMD (RX 6600) sous Windows : OPTIONNEL ---
+# ROCm ne supporte PAS Windows pour cette carte. Le seul backend GPU
+# réaliste sous Windows est DirectML. Pour l'activer :
+#   python -m pip install torch-directml
+# Le code détecte automatiquement DirectML s'il est installé (voir src/utils.py).
+# Sinon, tout tourne sur CPU sans rien changer.
