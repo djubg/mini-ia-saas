@@ -15,6 +15,7 @@ Lance :
 """
 
 import os
+import sys
 import time
 import math
 import pickle
@@ -22,6 +23,16 @@ import argparse
 from contextlib import nullcontext
 
 import torch
+
+# La console Windows est en cp1252 par défaut, et un pipe (ex. `| Tee-Object`)
+# force aussi cp1252 -> force l'UTF-8 pour éviter les UnicodeEncodeError sur le
+# texte accentué (sinon le run plante au 1er print « Modèle… »).
+# line_buffering=True : flush à chaque ligne même dans un pipe (sinon stdout est
+# bloc-bufferisé -> aucune progression visible dans le log pendant des heures).
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
+except Exception:
+    pass
 
 from config import GPTConfig, TrainConfig
 from model import GPT

@@ -8,10 +8,19 @@ Lance :
 """
 
 import os
+import sys
 import pickle
 import argparse
 
 import torch
+
+# La console Windows est en cp1252 par défaut, et un pipe (ex. `| Tee-Object`)
+# force aussi cp1252 -> force l'UTF-8 pour éviter les UnicodeEncodeError sur le
+# texte généré accentué. line_buffering=True : flush à chaque ligne même en pipe.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
+except Exception:
+    pass
 
 from config import GPTConfig
 from model import GPT
