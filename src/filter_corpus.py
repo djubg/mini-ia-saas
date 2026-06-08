@@ -19,7 +19,15 @@ Usage :
 
 import os
 import re
+import sys
 import glob
+
+# Console Windows / pipe = cp1252 -> force UTF-8 (sinon UnicodeEncodeError sur le
+# texte accentué). line_buffering : progression visible en pipe.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
+except Exception:
+    pass
 import time
 import argparse
 

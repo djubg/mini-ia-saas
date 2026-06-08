@@ -20,11 +20,19 @@ Lance :
 """
 
 import os
+import sys
 import glob
 import pickle
 import argparse
 
 import numpy as np
+
+# Console Windows / pipe = cp1252 -> force UTF-8 (sinon UnicodeEncodeError sur le
+# texte accentué). line_buffering : progression visible en pipe.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
+except Exception:
+    pass
 
 from tokenizer import BPETokenizer, END_OF_TEXT
 

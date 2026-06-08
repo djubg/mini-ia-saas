@@ -34,8 +34,16 @@ tokens ≈ ~4 Go de fichiers .bin tokenisés. Donc ~15 Go libres pour viser 10 G
 
 import os
 import re
+import sys
 import time
 import argparse
+
+# Console Windows / pipe = cp1252 -> force UTF-8 (sinon UnicodeEncodeError sur
+# « gardés », « Terminé »...). line_buffering : progression visible en pipe.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
+except Exception:
+    pass
 
 # --- Presets de sources (datasets publics HuggingFace) ---
 # text_key = nom du champ texte dans chaque exemple du dataset.
@@ -48,6 +56,9 @@ SOURCES = {
     # Web haute qualité filtré (FineWeb). Échantillon 10B tokens, idéal en streaming.
     "fineweb": dict(path="HuggingFaceFW/fineweb", name="sample-10BT",
                     split="train", text_key="text"),
+    # FineWeb échantillon 100B tokens (~450 Go) : quand sample-10BT est épuisé.
+    "fineweb100": dict(path="HuggingFaceFW/fineweb", name="sample-100BT",
+                       split="train", text_key="text"),
     # OpenWebText (~38 Go), style "articles partagés sur Reddit".
     "openwebtext": dict(path="Skylion007/openwebtext", name=None,
                         split="train", text_key="text"),
