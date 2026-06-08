@@ -44,15 +44,16 @@ python src/generate.py --prompt "..." --device cpu --top_p 0.9 --repetition_pena
 - Docs séparés par `<|endoftext|>`, split train/val au niveau document. `.bin` = uint16 (memmap).
 - **Seul `data/sample_saas.txt` est versionné** (le reste est ignoré : trop lourd / reproductible).
 
-## État actuel (2026-06-07)
+## État actuel (2026-06-08)
 - Corpus prêt : **56 Mo SaaS propre** (10 Go FineWeb brut → filtre strict min_total=3) →
   **15,3M tokens** (train 13,8M / val 1,46M), vocab 8193 (tokenizer réentraîné).
-- `checkpoints/ckpt.pt` = ancien modèle 13,8M, **orphelin** (son tokenizer a été remplacé →
-  génère du charabia). Backups : `ckpt_v2_2M.pt`, `ckpt_v1_255k.pt`.
-- **PRÉVU : run de 8h** (modèle **29,5M** : n_layer 8, n_head 8, n_embd 512, block 256,
-  testé à ~725 ms/iter sur DML) via `train_journee.ps1` (max_iters 40000). Après ce run,
-  `ckpt.pt` sera le bon modèle (entraîné AVEC le tokenizer courant) + tokenizer embarqué.
-- Progression val loss : 98k→6,17 · 255k→5,44 · 2,24M→4,84 · (run 8h à venir sur 15,3M).
+- **Run de 8h FAIT** (`train_journee.ps1`, 40000 iters, ~655 ms/iter sur DML) → modèle
+  **29,5M** (n_layer 8, n_head 8, n_embd 512, block 256). `checkpoints/ckpt.pt` est
+  désormais **le bon modèle** : entraîné AVEC le tokenizer courant + tokenizer embarqué
+  (l'orphelin est réglé). `ckpt_last.pt` = dernier état. Backups : `ckpt_v2_2M.pt`, `ckpt_v1_255k.pt`.
+- **Résultats** : meilleure val loss **3,94** · perplexité val **79,1** (`eval.py`) · génération
+  cohérente et sur-thème (greedy répète un peu ; échantillonné `top_p 0.9` + `repetition_penalty 1.3` = propre).
+- Progression val loss : 98k→6,17 · 255k→5,44 · 2,24M→4,84 · **15,3M (40000 it)→3,94**.
 
 ## Outils ajoutés (session du 2026-06-07)
 - Génération : `--repetition_penalty`, `--top_p`, `--stop` (corrige la répétition « SaaS »).
@@ -78,4 +79,7 @@ python src/generate.py --prompt "..." --device cpu --top_p 0.9 --repetition_pena
   (N = total « lus » du run précédent) pour du neuf.
 - **val loss non comparable** entre deux tokenizers → comparer via `eval.py`.
 - Sorties console : forcer UTF-8 (`sys.stdout.reconfigure`) sinon `UnicodeEncodeError` (cp1252).
+  ⚠️ **Un pipe (`| Tee-Object`) force AUSSI cp1252** → un `print` accentué plante le run. `train.py`,
+  `generate.py`, `eval.py` font tous le `reconfigure(utf-8, line_buffering=True)` (le `line_buffering`
+  garde le log vivant dans un pipe, sinon stdout est bloc-bufferisé et n'affiche rien pendant des heures).
 - Désactiver la **veille Windows** avant un long entraînement (sinon le GPU gèle).
