@@ -44,16 +44,22 @@ python src/generate.py --prompt "..." --device cpu --top_p 0.9 --repetition_pena
 - Docs séparés par `<|endoftext|>`, split train/val au niveau document. `.bin` = uint16 (memmap).
 - **Seul `data/sample_saas.txt` est versionné** (le reste est ignoré : trop lourd / reproductible).
 
-## État actuel (2026-06-08)
-- Corpus prêt : **56 Mo SaaS propre** (10 Go FineWeb brut → filtre strict min_total=3) →
-  **15,3M tokens** (train 13,8M / val 1,46M), vocab 8193 (tokenizer réentraîné).
-- **Run de 8h FAIT** (`train_journee.ps1`, 40000 iters, ~655 ms/iter sur DML) → modèle
-  **29,5M** (n_layer 8, n_head 8, n_embd 512, block 256). `checkpoints/ckpt.pt` est
-  désormais **le bon modèle** : entraîné AVEC le tokenizer courant + tokenizer embarqué
-  (l'orphelin est réglé). `ckpt_last.pt` = dernier état. Backups : `ckpt_v2_2M.pt`, `ckpt_v1_255k.pt`.
-- **Résultats** : meilleure val loss **3,94** · perplexité val **79,1** (`eval.py`) · génération
-  cohérente et sur-thème (greedy répète un peu ; échantillonné `top_p 0.9` + `repetition_penalty 1.3` = propre).
-- Progression val loss : 98k→6,17 · 255k→5,44 · 2,24M→4,84 · **15,3M (40000 it)→3,94**.
+## État actuel (2026-06-09)
+- **Modèle courant** : `checkpoints/ckpt.pt` = **29,5M params** (n_layer 8, n_head 8,
+  n_embd 512, block 256, vocab 8193), entraîné *from scratch* 40000 iters (~655 ms/iter
+  DML), tokenizer embarqué. **val loss 3,81 · perplexité 49,75** (`eval.py`). Génération
+  cohérente et sur-thème SaaS. `ckpt_last.pt` = dernier état.
+- **Corpus** : **268 Mo SaaS propre** → **71M tokens** (train 63,7M / val 7,26M ;
+  `train.bin` 121 Mo). Source : 50 Go FineWeb **sample-100BT** → `filter_corpus
+  --min_total 3` (18 977 docs) → `prepare_data --retrain_tokenizer --no_big`.
+  Brut 50 Go encore dans `data/big` (supprimable, `--no_big` l'ignore).
+- **Leçon « plus de données > plus de modèle » (Chinchilla) observée le 2026-06-09** :
+  15,3M → 71M tokens (×4,6, ~2,6 epochs au lieu de 12) → **écart train/val 0,64 → 0,14**
+  (train 3,30/val 3,94 → train 3,67/val 3,81) : surapprentissage quasi disparu, val loss
+  en baisse, perplexité 79,1 → 49,75. Le modèle n'a PAS grossi (toujours 29,5M).
+- Progression val loss : 98k→6,17 · 255k→5,44 · 2,24M→4,84 · 15,3M→3,94 · **71M→3,81**.
+- Backups : `ckpt_v4_29M_71Mtok_val381.pt` (= courant), `ckpt_v3_29M_val394.pt` (run 15,3M
+  tok), `ckpt_v2_2M.pt`, `ckpt_v1_255k.pt`. Token HF enregistré (`~/.cache/huggingface`).
 
 ## Outils ajoutés (session du 2026-06-07)
 - Génération : `--repetition_penalty`, `--top_p`, `--stop` (corrige la répétition « SaaS »).
