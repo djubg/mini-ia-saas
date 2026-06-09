@@ -40,10 +40,16 @@ except Exception:
 from tokenizer import BPETokenizer, END_OF_TEXT
 
 
+# Alpaca est bruité : ~231 exemples ont "Noinput"/"<noinput>" comme input (un
+# placeholder voulant dire "pas d'entrée") et ~30 ont "<nooutput>" comme sortie.
+# Si on les laisse, le modèle APPREND à recracher ces placeholders. On les nettoie.
+_PLACEHOLDER_INPUTS = {"", "noinput", "<noinput>", "n/a", "na", "none", "nil", "-"}
+
+
 def format_example(ex):
     """Une paire instruction/réponse -> texte au format conversation.
 
-    Renvoie None si l'exemple est inexploitable (vide).
+    Renvoie None si l'exemple est inexploitable (vide / bruité).
     Le format DOIT être identique partout pour que le modèle l'apprenne.
     """
     instruction = (ex.get("instruction") or "").strip()
@@ -51,6 +57,13 @@ def format_example(ex):
     context = (ex.get("input") or "").strip()  # champ optionnel (Alpaca)
     if not instruction or not output:
         return None
+    # jette les sorties parasites ("<nooutput>...", ou trop courtes pour apprendre).
+    if output.lower().startswith("<nooutput") or len(output) < 3:
+        return None
+    # ignore les "input" qui sont en fait des placeholders "pas d'entrée".
+    if context.lower().replace(" ", "") in _PLACEHOLDER_INPUTS \
+            or context.lower().startswith("<noinput"):
+        context = ""
     if context:
         prompt = f"User: {instruction}\n{context}"
     else:
