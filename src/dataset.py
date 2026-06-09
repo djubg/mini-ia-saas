@@ -23,12 +23,16 @@ class DataLoader:
       y = la même fenêtre décalée d'un token (la cible à prédire).
     """
 
-    def __init__(self, data_dir, block_size, batch_size, device):
-        train_path = os.path.join(data_dir, "train.bin")
-        val_path = os.path.join(data_dir, "val.bin")
+    def __init__(self, data_dir, block_size, batch_size, device,
+                 train_name="train.bin", val_name="val.bin"):
+        # train_name/val_name : permet de pointer sur d'autres jeux (ex.
+        # chat_train.bin/chat_val.bin pour le fine-tuning conversationnel).
+        train_path = os.path.join(data_dir, train_name)
+        val_path = os.path.join(data_dir, val_name)
         if not os.path.exists(train_path):
             raise FileNotFoundError(
-                f"{train_path} introuvable. Lance d'abord : python src/prepare_data.py"
+                f"{train_path} introuvable. Lance d'abord prepare_data.py "
+                "(ou prepare_chat_data.py pour le fine-tuning)."
             )
         self.train_data = _load_bin(train_path)
         self.val_data = _load_bin(val_path) if os.path.exists(val_path) else self.train_data
